@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ely SolarHub — Simulador</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --surface:#ffffff;
+      --surface-alt:#f8fafc;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:#e5e7eb;
+
+      --primary:#2fd27a;
+      --primary-contrast:#0b4126;
+
+      /* verde mais vibrante para ECONOMIA */
+      --economy:#16a34a;
+      --shadow: 0 10px 25px rgba(15, 23, 42, .06);
+      --radius:14px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+
+    body{
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.6;
+    }
+
+    a{color:inherit;text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    .container{
+      max-width:1100px;
+      margin:40px auto;
+      padding:0 20px;
+    }
+
+    .card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:32px;
+      box-shadow: var(--shadow);
+    }
+
+    h1{
+      margin:0 0 8px;
+      font-size:28px;
+      letter-spacing:.2px;
+    }
+
+    h2{
+      margin:0 0 14px;
+      font-size:22px;
+      letter-spacing:.2px;
+    }
+
+    .subtitle{
+      margin:0 0 24px;
+      color:var(--muted);
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap:20px;
+      align-items:start;
+    }
+
+    label{
+      display:block;
+      font-weight:600;
+      margin-bottom:6px;
+    }
+
+    input, select{
+      width:100%;
+      padding:12px 14px;
+      font-size:15px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      background:#fff;
+    }
+
+    input::placeholder{ color:#9ca3af; }
+
+    input:focus, select:focus{
+      outline:none;
+      border-color:var(--primary);
+      box-shadow:0 0 0 2px rgba(47,210,122,.18);
+    }
+
+    .helper{
+      margin-top:6px;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .actions{
+      margin-top:22px;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    button{
+      padding:12px 20px;
+      font-size:15px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+    }
+
+    .btn-primary{
+      background:var(--primary);
+      color:var(--primary-contrast);
+      border:none;
+    }
+
+    .btn-secondary{
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--border);
+    }
+
+    .divider{
+      margin-top:26px;
+      border-top:1px solid var(--border);
+    }
+
+    .results{
+      margin-top:22px;
+      display:none;
+    }
+
+    .results-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:16px;
+      margin-top:16px;
+    }
+
+    .result-box{
+      background:var(--surface-alt);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:18px;
+    }
+
+    .result-title{
+      font-size:14px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    /* padrão dos valores (VRSC e VEF) = sem negrito */
+    .result-value{
+      font-size:24px;
+      font-weight:500;
+      letter-spacing:.2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* economia com destaque */
+    .result-value.economy{
+      font-weight:800;
+      color:var(--economy);
+    }
+
+    .disclaimer{
+      margin-top:14px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    /* ===== Seções finais (Como funciona / Remuneração / Footer) ===== */
+    .section{
+      margin-top:38px;
+    }
+
+    .section-card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      padding:28px;
+    }
+
+    .grid-4{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:16px;
+    }
+
+    @media (max-width: 980px){
+      .grid-4{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px){
+      .grid-4{ grid-template-columns: 1fr; }
+    }
+
+    .mini-card{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:18px;
+      background:#fff;
+    }
+
+    .mini-card .num{
+      font-weight:800;
+      margin-bottom:8px;
+    }
+
+    .mini-card .title{
+      font-weight:800;
+      margin-bottom:8px;
+    }
+
+    .two-col{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:26px;
+      align-items:start;
+    }
+
+    @media (max-width: 900px){
+      .two-col{ grid-template-columns: 1fr; }
+    }
+
+    .bullets{
+      margin:12px 0 0;
+      padding-left:18px;
+    }
+    .bullets li{ margin:8px 0; }
+
+    /* Footer */
+    footer{
+      margin-top:44px;
+      background:#f8fafc;
+      border-top:1px solid var(--border);
+    }
+
+    .footer-inner{
+      max-width:1100px;
+      margin:0 auto;
+      padding:26px 20px;
+      display:grid;
+      grid-template-columns: 1.2fr 1fr 1.3fr;
+      gap:22px;
+      align-items:start;
+    }
+
+    @media (max-width: 980px){
+      .footer-inner{ grid-template-columns: 1fr; }
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:0;
+      margin-bottom:14px;
+    }
+
+    .brand-logo{
+      width:220px;
+      height:auto;
+      max-width:100%;
+      object-fit:contain;
+      display:block;
+    }
+
+    .footer-title{
+      font-weight:900;
+      margin-bottom:10px;
+      color:#0f172a;
+    }
+
+    .footer-meta{
+      color:#0f172a;
+      font-size:14px;
+      line-height:1.9;
+    }
+
+    .footer-links a{
+      display:block;
+      color:#0f172a;
+      margin:8px 0;
+      font-size:14px;
+    }
+
+    .footer-note{
+      color:#0f172a;
+      font-size:14px;
+      line-height:1.9;
+    }
+
+    .copyright{
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      padding:14px 20px 22px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Ely SolarHub — Simulador</h1>
+      <p class="subtitle">
+        Preencha os campos e clique em <strong>Calcular</strong> para visualizar valores estimados (simulação ilustrativa).
+      </p>
+
+      <form id="simForm" novalidate>
+        <div class="form-grid">
+          <div>
+            <label for="consumo">Consumo médio (kWh/mês)</label>
+            <input type="number" id="consumo" placeholder="Ex.: 950" min="1" step="1" required />
+            <div class="helper">Informe o consumo médio mensal em kWh.</div>
+          </div>
+
+          <div>
+            <label for="desconto">Percentual de Desconto (%)</label>
+            <input type="number" id="desconto" placeholder="Ex.: 15" min="1" max="30" step="1" required />
+            <div class="helper">De 1 a 30. Ex.: 15 significa 15%.</div>
+          </div>
+
+          <div>
+            <label for="perfil">Perfil</label>
+            <select id="perfil" required>
+              <option value="" selected disabled>Selecione o perfil</option>
+              <option value="comercial">Comercial</option>
+              <option value="residencial">Residencial</option>
+              <option value="rural">Rural</option>
+            </select>
+            <div class="helper">
+              Tarifa de referência ilustrativa:
+              Comercial R$ 0,90 | Residencial R$ 0,89 | Rural R$ 0,70
+            </div>
+          </div>
+          <!-- ===== Campos opcionais (aparecem no PDF só se preenchidos) ===== -->
+          <div>
+            <label for="clienteNome">Nome do cliente (opcional)</label>
+              <input type="text" id="clienteNome" placeholder="Ex.: João da Silva" />
+          </div>
+          
+          <div>
+            <label for="clienteDoc">CPF/CNPJ (opcional)</label>
+              <input type="text" id="clienteDoc" placeholder="Ex.: 000.000.000-00 ou 00.000.000/0000-00" />
+          </div>
+          
+          <div>
+            <label for="clienteDist">Distribuidora / UC (opcional)</label>
+            <input type="text" id="clienteDist" placeholder="Ex.: COPEL / UC 123456789" />
+          </div>
+          
+          <div>
+            <label for="clienteCidade">Cidade (opcional)</label>
+            <input type="text" id="clienteCidade" placeholder="Ex.: São Paulo - SP" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" type="submit">Calcular</button>
+          <button class="btn-secondary" type="button" id="btnLimpar">Limpar</button>
+          <button class="btn-secondary" type="button" id="btnPdf">Gerar PDF</button>
+        </div>
+      </form>
+
+      <div class="divider"></div>
+
+      <div class="results" id="results">
+        <h2>Resultados estimados</h2>
+
+        <div class="results-grid">
+          <div class="result-box">
+            <div class="result-title">VRSC</div>
+            <div class="result-value" id="vrsc">—</div>
+          </div>
+
+          <div class="result-box">
+            <div class="result-title">VEF</div>
+            <div class="result-value" id="vef">—</div>
+          </div>
+
+          <div class="result-box">
+            <div class="result-title">Economia financeira mensal</div>
+            <div class="result-value economy" id="economiaMensal">—</div>
+          </div>
+
+          <div class="result-box">
+            <div class="result-title">Economia financeira anual</div>
+            <div class="result-value economy" id="economiaAnual">—</div>
+          </div>
+        </div>
+
+        <p class="disclaimer">
+          Valores meramente ilustrativos. Não representam promessa de economia, garantia de resultado ou oferta comercial de energia.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Como funciona</h2>
+      <div class="section-card">
+        <div class="grid-4">
+          <div class="mini-card">
+            <div class="num">1. <span class="title">Participação no SCEE</span></div>
+            <div>Você ingressa em arranjo de geração compartilhada dentro da área da sua distribuidora.</div>
+          </div>
+
+          <div class="mini-card">
+            <div class="num">2. <span class="title">Créditos na fatura</span></div>
+            <div>A distribuidora compensa créditos de energia na sua fatura, conforme regras do SCEE.</div>
+          </div>
+
+          <div class="mini-card">
+            <div class="num">3. <span class="title">Apuração oficial</span></div>
+            <div>Comparamos a fatura do ciclo com o <strong>VRSC</strong> (sem compensação) e o <strong>VEF</strong> (após compensação).</div>
+          </div>
+
+          <div class="mini-card">
+            <div class="num">4. <span class="title">Success fee</span></div>
+            <div>Você paga um <strong>percentual da economia apurada</strong> (Economia = <strong>VRSC − VEF</strong>, quando positiva).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Remuneração baseada na economia (Success Fee)</h2>
+      <div class="section-card">
+        <div class="two-col">
+          <div>
+            <div class="footer-title">Metodologia</div>
+            <ul class="bullets">
+              <li><strong>VRSC</strong>: valor estimado da fatura sem compensação (mesmo ciclo).</li>
+              <li><strong>VEF</strong>: valor efetivamente faturado após compensação.</li>
+              <li><strong>Economia Financeira</strong> = <strong>VRSC − VEF</strong> (quando positiva).</li>
+            </ul>
+            <div style="margin-top:12px;color:var(--text);font-size:14px;">
+              Base documental: <strong>fatura emitida pela distribuidora</strong>. Em caso de divergência, conferência conjunta com documentos oficiais.
+            </div>
+          </div>
+
+          <div>
+            <div class="footer-title">Transparência e natureza do serviço</div>
+            <div style="color:var(--text);font-size:14px;line-height:1.9;">
+              A remuneração possui natureza exclusiva de <strong>prestação de serviços</strong>. Não se vincula a kWh, não representa preço de energia e não configura comercialização elétrica.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TEMPLATE DO PDF (FORA DA TELA, MAS RENDERIZÁVEL) ===== -->
+  <div id="pdfRoot" style="position:absolute; left:-9999px; top:0; width:794px; background:#fff;">
+    <div style="font-family: Inter, Arial, sans-serif; padding:28px; color:#0f172a;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; border-bottom:1px solid #e5e7eb; padding-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <img id="pdfLogo" src="logo.png" alt="Ely SolarHub" style="height:46px; width:auto; display:block;" />
+        </div>
+        <div style="text-align:right; font-size:12px; color:#64748b;">
+          <div><strong>Simulação ilustrativa</strong></div>
+          <div id="pdfDate"></div>
+        </div>
+      </div>
+
+      <h1 style="margin:18px 0 6px; font-size:20px;">Proposta de Simulação</h1>
+      <div style="font-size:13px; color:#64748b; margin-bottom:14px;">
+        Valores estimados a partir do consumo informado, perfil selecionado e percentual de desconto.
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-top:10px;">
+        <div style="border:1px solid #e5e7eb; border-radius:12px; padding:12px;">
+          <div style="font-size:12px; color:#64748b;">Consumo médio</div>
+          <div style="font-size:16px; font-weight:800;" id="pdfConsumo">—</div>
+        </div>
+        <div style="border:1px solid #e5e7eb; border-radius:12px; padding:12px;">
+          <div style="font-size:12px; color:#64748b;">Perfil</div>
+          <div style="font-size:16px; font-weight:800;" id="pdfPerfil">—</div>
+        </div>
+        <div style="border:1px solid #e5e7eb; border-radius:12px; padding:12px;">
+          <div style="font-size:12px; color:#64748b;">Desconto</div>
+          <div style="font-size:16px; font-weight:800; color:#16a34a;" id="pdfDesconto">—</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:10px; margin-top:14px;">
+        <div style="border:1px solid #e5e7eb; border-radius:12px; padding:12px; background:#fff;">
+          <div style="font-size:12px; color:#64748b;">VRSC (sem compensação)</div>
+          <div style="font-size:16px; font-weight:700;" id="pdfVrsc">—</div>
+        </div>
+
+        <div style="border:1px solid #e5e7eb; border-radius:12px; padding:12px; background:#fff;">
+          <div style="font-size:12px; color:#64748b;">VEF (após compensação)</div>
+          <div style="font-size:16px; font-weight:700;" id="pdfVef">—</div>
+        </div>
+
+        <div style="border:1px solid #e5e7eb; border-radius:12px; padding:12px; background:#f0fdf4;">
+          <div style="font-size:12px; color:#166534;">Economia mensal</div>
+          <div style="font-size:16px; font-weight:900; color:#16a34a;" id="pdfEcoMensal">—</div>
+        </div>
+
+        <div style="border:1px solid #e5e7eb; border-radius:12px; padding:12px; background:#f0fdf4;">
+          <div style="font-size:12px; color:#166534;">Economia anual</div>
+          <div style="font-size:16px; font-weight:900; color:#16a34a;" id="pdfEcoAnual">—</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px; font-size:10.5px; color:#64748b; line-height:1.6; border-top:1px solid #e5e7eb; padding-top:12px;">
+        <strong>Transparência:</strong> Prestamos serviços de gestão administrativa e regulatória relacionados à participação no SCEE.
+        Não comercializamos energia elétrica e não garantimos economia mínima, compensação integral ou resultado. Simulações têm caráter exclusivamente ilustrativo.
+        <br/><br/>
+        <strong>Base documental:</strong> fatura emitida pela distribuidora. Em caso de divergência, conferência conjunta com documentos oficiais.
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="brand">
+          <img src="logo.png" alt="Ely SolarHub" class="brand-logo" />
+        </div>
+
+        <div class="footer-meta">
+          <div><strong>CNPJ:</strong> 64.072.577/0001-91</div>
+          <div><strong>Domínio:</strong> <a href="https://elysolarhub.com.br" target="_blank" rel="noopener">elysolarhub.com.br</a></div>
+          <div><strong>E-mail:</strong> <a href="mailto:contato@elysolarhub.com.br">contato@elysolarhub.com.br</a></div>
+          <div><strong>WhatsApp:</strong> <a href="https://wa.me/5561996140478" target="_blank" rel="noopener">(61) 99614-0478</a></div>
+          <div><strong>Instagram:</strong> <a href="https://instagram.com/elysolarhub" target="_blank" rel="noopener">@elysolarhub</a></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-title">Links</div>
+        <div class="footer-links">
+          <a href="https://elysolarhub.com.br/#quem-somos" target="_blank" rel="noopener">Quem somos</a>
+          <a href="https://elysolarhub.com.br/#como-funciona" target="_blank" rel="noopener">Como funciona</a>
+          <a href="https://elysolarhub.com.br/#remuneracao" target="_blank" rel="noopener">Remuneração</a>
+          <a href="https://elysolarhub.com.br/#base-legal" target="_blank" rel="noopener">Base legal</a>
+          <a href="https://elysolarhub.com.br/#faq" target="_blank" rel="noopener">FAQ</a>
+          <a href="https://elysolarhub.com.br/#receber-proposta" target="_blank" rel="noopener">Receber proposta</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-title">Transparência</div>
+        <div class="footer-note">
+          Prestamos serviços de gestão administrativa e regulatória relacionados à participação no SCEE.
+          Não comercializamos energia elétrica e não garantimos economia mínima, compensação integral ou resultado.
+          Simulações têm caráter exclusivamente ilustrativo.
+        </div>
+      </div>
+    </div>
+
+    <div class="copyright">© 2026 Ely SolarHub Ltda — Todos os direitos reservados.</div>
+  </footer>
+
+ <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<script>
+  const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  function perfilLabel(value){
+    if (value === "comercial") return "Comercial";
+    if (value === "residencial") return "Residencial";
+    if (value === "rural") return "Rural";
+    return "—";
+  }
+
+  function kwhLabel(valor){
+    const n = Number(valor);
+    if (!isFinite(n)) return "—";
+    return n.toLocaleString("pt-BR") + " kWh/mês";
+  }
+
+  function calcular(){
+    const consumo = parseFloat(document.getElementById("consumo").value);
+    const desconto = parseFloat(document.getElementById("desconto").value);
+    const perfil = document.getElementById("perfil").value;
+
+    if (!isFinite(consumo) || consumo <= 0) return;
+
+    // valida desconto 1 a 30
+    if (!isFinite(desconto) || desconto < 1 || desconto > 30) {
+      alert("Desconto precisa estar entre 1% e 30%");
+      return;
+    }
+
+    if (!perfil) return;
+
+    let precoPerfil = 0;
+    if (perfil === "comercial") precoPerfil = 0.90;
+    if (perfil === "residencial") precoPerfil = 0.89;
+    if (perfil === "rural") precoPerfil = 0.70;
+
+    const vrsc = consumo * precoPerfil;
+    const vef = vrsc * (1 - desconto / 100);
+    const economiaMensal = Math.max(vrsc - vef, 0);
+    const economiaAnual = economiaMensal * 12;
+
+    document.getElementById("vrsc").innerText = brl.format(vrsc);
+    document.getElementById("vef").innerText = brl.format(vef);
+    document.getElementById("economiaMensal").innerText = brl.format(economiaMensal);
+    document.getElementById("economiaAnual").innerText = brl.format(economiaAnual);
+
+    document.getElementById("results").style.display = "block";
+  }
+
+  function limpar(){
+    document.getElementById("consumo").value = "";
+    document.getElementById("desconto").value = "";
+    document.getElementById("perfil").value = "";
+    document.getElementById("results").style.display = "none";
+    document.getElementById("clienteNome").value = "";
+    document.getElementById("clienteDoc").value = "";
+    document.getElementById("clienteDist").value = "";
+    document.getElementById("clienteCidade").value = "";
+  }
+
+  function ensureCalculatedOrFail(){
+    const form = document.getElementById("simForm");
+    if (!form.checkValidity()){
+      form.reportValidity();
+      return false;
+    }
+    calcular();
+    return document.getElementById("results").style.display === "block";
+  }
+
+  async function loadImageAsDataURL(src) {
+    const res = await fetch(src, { cache: "no-store" });
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+  }
+
+  // Eventos
+  document.getElementById("btnLimpar").addEventListener("click", limpar);
+
+  document.getElementById("simForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    if (!this.checkValidity()){
+      this.reportValidity();
+      return;
+    }
+    calcular();
+  });
+
+  document.getElementById("btnPdf").addEventListener("click", async () => {
+    if (!ensureCalculatedOrFail()) return;
+
+    const consumo = Number(document.getElementById("consumo").value);
+    const desconto = Number(document.getElementById("desconto").value);
+    const perfil = document.getElementById("perfil").value;
+    const clienteNome = (document.getElementById("clienteNome")?.value || "").trim();
+    const clienteDoc  = (document.getElementById("clienteDoc")?.value || "").trim();
+    const clienteDist = (document.getElementById("clienteDist")?.value || "").trim();
+    const clienteCidade = (document.getElementById("clienteCidade")?.value || "").trim();
+
+
+    if (!isFinite(consumo) || consumo <= 0) return;
+    if (!isFinite(desconto) || desconto < 1 || desconto > 30) {
+      alert("Desconto precisa estar entre 1% e 30%");
+      return;
+    }
+    if (!perfil) return;
+
+    const vrscTxt = document.getElementById("vrsc").innerText;
+    const vefTxt = document.getElementById("vef").innerText;
+    const ecoMensalTxt = document.getElementById("economiaMensal").innerText;
+    const ecoAnualTxt = document.getElementById("economiaAnual").innerText;
+
+    const perfilTxt = perfilLabel(perfil);
+    const consumoTxt = kwhLabel(consumo);
+    const descontoTxt = `${desconto.toLocaleString("pt-BR")} %`;
+    const dataTxt = new Date().toLocaleString("pt-BR");
+
+    const overlay = document.getElementById("pdfOverlay");
+    if (overlay) overlay.style.display = "flex";
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 12;
+
+      // Logo (logo.png no root)
+      let logoDataUrl = null;
+      try { logoDataUrl = await loadImageAsDataURL("logo.png"); } catch(e){}
+
+      if (logoDataUrl) doc.addImage(logoDataUrl, "PNG", margin, 10, 40, 12);
+      
+      // ===== Cabeçalho forte: Proposta / Nº / Validade =====
+      const propostaNum = "ESH-" + new Date().toISOString().slice(0,10).replaceAll("-","") + "-" + String(Math.floor(Math.random()*9000)+1000);
+      const validadeDias = 7;
+      const validadeDate = new Date(Date.now() + validadeDias*24*60*60*1000);
+      const validadeTxt = validadeDate.toLocaleDateString("pt-BR");
+      
+      doc.setTextColor(15, 23, 42);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("Proposta Comercial / Simulação", pageW - margin, 14, { align: "right" });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Nº: ${propostaNum}`, pageW - margin, 19, { align: "right" });
+      doc.text(`Validade: até ${validadeTxt}`, pageW - margin, 24, { align: "right" });
+
+      // Linha
+      doc.setDrawColor(229, 231, 235);
+      doc.line(margin, 28, pageW - margin, 28);
+
+      doc.setTextColor(15, 23, 42);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Proposta de Simulação", margin, 35);
+
+      // ===== Bloco de identificação (opcional) =====
+      let y = 46; // posição inicial após o texto introdutório (ajuste se necessário)
+
+      const rows = [];
+     if (clienteNome) rows.push(["Cliente", clienteNome]);
+    if (clienteDoc) rows.push(["CPF/CNPJ", clienteDoc]);
+    if (clienteDist) rows.push(["Distribuidora/UC", clienteDist]);
+    if (clienteCidade) rows.push(["Cidade", clienteCidade]);
+
+    if (rows.length) {
+      // Caixa
+    doc.setDrawColor(229, 231, 235);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, y, pageW - margin*2, 22 + rows.length*6, 3, 3, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Identificação", margin + 4, y + 8);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(15, 23, 42);
+
+  let yy = y + 14;
+  rows.forEach(([k, v]) => {
+    doc.setTextColor(100);
+    doc.text(k + ":", margin + 4, yy);
+    doc.setTextColor(15, 23, 42);
+    doc.text(String(v), margin + 35, yy, { maxWidth: pageW - margin*2 - 40 });
+    yy += 6;
+  });
+
+  y = y + 30 + rows.length*6; // empurra o restante
+} else {
+  y = 46; // sem identificação
+}
+
+
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text("Valores estimados a partir do consumo informado, perfil selecionado e percentual de desconto.", margin, 41);
+
+      // cards topo
+      const cardY = y + 2, cardH = 18, gap = 4;
+      const cardW = (pageW - margin * 2 - gap * 2) / 3;
+
+      function card(x, y, w, h, title, value, rgb) {
+        doc.setDrawColor(229, 231, 235);
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(x, y, w, h, 3, 3, "FD");
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        doc.text(title, x + 4, y + 6);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        if (rgb) doc.setTextColor(rgb[0], rgb[1], rgb[2]); else doc.setTextColor(15, 23, 42);
+        doc.text(value, x + 4, y + 14);
+      }
+
+      card(margin, cardY, cardW, cardH, "Consumo médio", consumoTxt);
+      card(margin + cardW + gap, cardY, cardW, cardH, "Perfil", perfilTxt);
+      card(margin + (cardW + gap) * 2, cardY, cardW, cardH, "Desconto", descontoTxt, [22, 163, 74]);
+
+      // boxes resultados
+      const boxY = cardY + 22, boxH = 22, boxGap = 4;
+      const boxW = (pageW - margin * 2 - boxGap * 3) / 4;
+
+      function box(x, y, w, h, title, value, green) {
+        doc.setDrawColor(229, 231, 235);
+        if (green) doc.setFillColor(240, 253, 244); else doc.setFillColor(255, 255, 255);
+        doc.roundedRect(x, y, w, h, 3, 3, "FD");
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(green ? 22 : 100, green ? 101 : 100, green ? 52 : 100);
+        doc.text(title, x + 4, y + 7);
+
+        doc.setFont("helvetica", green ? "bold" : "normal");
+        doc.setFontSize(12);
+        doc.setTextColor(green ? 22 : 15, green ? 163 : 23, green ? 74 : 42);
+        doc.text(value, x + 4, y + 16);
+      }
+
+      box(margin, boxY, boxW, boxH, "VRSC", vrscTxt, false);
+      box(margin + (boxW + boxGap) * 1, boxY, boxW, boxH, "VEF", vefTxt, false);
+      box(margin + (boxW + boxGap) * 2, boxY, boxW, boxH, "Economia mensal", ecoMensalTxt, true);
+      box(margin + (boxW + boxGap) * 3, boxY, boxW, boxH, "Economia anual", ecoAnualTxt, true);
+
+      // ===== DISCLAIMER (dinâmico, nunca em cima dos cards) =====
+const discY = boxY + boxH + 10;
+
+doc.setFont("helvetica", "normal");
+doc.setFontSize(9);
+doc.setTextColor(100);
+doc.text(
+  "Valores meramente ilustrativos. Não representam promessa de economia, garantia de resultado ou oferta comercial de energia.",
+  margin,
+  discY,
+  { maxWidth: pageW - margin * 2 }
+);
+
+// ===== RODAPÉ EM 2 COLUNAS (sem sobreposição) =====
+const footerTopY = pageH - 58; // área reservada do rodapé
+doc.setDrawColor(229, 231, 235);
+doc.line(margin, footerTopY, pageW - margin, footerTopY);
+
+// coluna direita (Contato)
+const rightColW = 58; // largura reservada p/ contato (ajuste fino se quiser)
+const rightX = pageW - margin;
+const leftMaxW = (pageW - margin * 2) - rightColW - 6; // espaço da coluna esquerda
+
+doc.setFont("helvetica", "bold");
+doc.setFontSize(9);
+doc.setTextColor(15, 23, 42);
+doc.text("Contato", rightX, footerTopY + 8, { align: "right" });
+
+doc.setFont("helvetica", "normal");
+doc.setFontSize(8.5);
+doc.setTextColor(100);
+doc.text(
+  "elysolarhub.com.br\ncontato@elysolarhub.com.br\nWhatsApp: (61) 99614-0478\nInstagram: @elysolarhub\nCNPJ: 64.072.577/0001-91",
+  rightX,
+  footerTopY + 12,
+  { align: "right" }
+);
+
+// coluna esquerda (Transparência)
+doc.setFont("helvetica", "bold");
+doc.setFontSize(9);
+doc.setTextColor(15, 23, 42);
+doc.text("Transparência:", margin, footerTopY + 8);
+
+doc.setFont("helvetica", "normal");
+doc.setFontSize(8.5);
+doc.setTextColor(100);
+doc.text(
+  "Prestamos serviços de gestão administrativa e regulatória relacionados à participação no SCEE. " +
+  "Não comercializamos energia elétrica e não garantimos economia mínima, compensação integral ou resultado. " +
+  "Simulações têm caráter exclusivamente ilustrativo.\n\n" +
+  "Base documental: fatura emitida pela distribuidora. Em caso de divergência, conferência conjunta com documentos oficiais.",
+  margin,
+  footerTopY + 12,
+  { maxWidth: leftMaxW }
+);
+
+           
+      doc.save(`ElySolarHub_Simulacao_${new Date().toISOString().slice(0,10)}.pdf`);
+    } finally {
+      if (overlay) overlay.style.display = "none";
+    }
+  });
+</script>
+  
+   <!-- Overlay simples para não “piscar” o template do PDF -->
+  <div id="pdfOverlay" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,.85); z-index:99999; align-items:center; justify-content:center; font-family:Inter, Arial, sans-serif;">
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 16px; box-shadow:0 10px 25px rgba(15,23,42,.08); color:#0f172a; font-weight:700;">
+      Gerando PDF…
+    </div>
+  </div>
+  
+</body>
+</html>
